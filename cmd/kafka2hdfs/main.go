@@ -1,15 +1,17 @@
-package main 
+package main
 
 import (
-"flag"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/dnance/kafka-to-hdfs-service/pkg/common"
-	
 )
+
 var (
+	hdfs_url    = flag.String("hdfs-url", os.Getenv("HDFS_URL"), "The address to HDFS IP + PORT")
+	hdfs_dir    = flag.String("hdfs-dir", os.Getenv("HDFS_URL"), "The address to HDFS IP + PORT")
 	brokerList  = flag.String("brokers", os.Getenv("KAFKA_PEERS"), "The comma separated list of brokers in the Kafka cluster. You can also set the KAFKA_PEERS environment variable")
 	topic       = flag.String("topic", "", "REQUIRED: the topic to produce to")
 	key         = flag.String("key", "", "The key of the message to produce. Can be empty.")
@@ -27,24 +29,26 @@ var (
 )
 
 func main() {
-		
-			flag.Parse()
-			fmt.Printf("Create consumer...\n")
-			
 
-		err := common.ConsumeMessages(*brokerList, *topic, *bufferSize, *offset, *partitions)
-		if err != nil {
-			fmt.Printf("error consuming message, %v", err)
-			os.Exit(-1)
-		}
+	flag.Parse()
+	fmt.Printf("listing directories on HDFS...\n")
+	err := common.ListDirs(*hdfs_url, *hdfs_dir)
+	if err != nil {
+		fmt.Printf("error listing directories on hdfs %v", err)
+		os.Exit(-1)
 	}
+
+	fmt.Printf("Create consumer...\n")
+
+	err = common.ConsumeMessages(*brokerList, *topic, *bufferSize, *offset, *partitions)
+	if err != nil {
+		fmt.Printf("error consuming message, %v", err)
+		os.Exit(-1)
+	}
+}
 
 func printErrorAndExit(code int, format string, values ...interface{}) {
 	fmt.Fprintf(os.Stderr, "ERROR: %s\n", fmt.Sprintf(format, values...))
 	fmt.Fprintln(os.Stderr)
 	os.Exit(code)
 }
-
-
-
-

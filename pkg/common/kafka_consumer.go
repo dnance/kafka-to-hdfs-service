@@ -18,7 +18,7 @@ var (
 
 func ConsumeMessages(brokerList string, topic string, bufferSize int, offset string, partitions string) error {
 
-	fmt.Printf("topic: %s, brokers %s\n", topic, brokerList)
+	fmt.Printf("topic: %s,\n brokers %s,\noffset %s,\npartitions %s\n", topic, brokerList, offset, partitions)
 
 	var initialOffset int64
 	switch offset {
@@ -119,4 +119,3 @@ func printErrorAndExit(code int, format string, values ...interface{}) {
 	fmt.Fprintln(os.Stderr)
 	os.Exit(code)
 }
-
