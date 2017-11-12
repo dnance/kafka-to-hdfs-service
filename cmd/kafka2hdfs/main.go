@@ -31,27 +31,18 @@ var (
 )
 
 func main() {
-	data := []byte("testdata\n")
 
 	flag.Parse()
-	// TODO remove 	hdfs_file := fmt.Sprintf("%s/output.txt", *hdfs_dir)
 
-	err := common.WriteData(*hdfs_url, *hdfs_dir, *hdfs_file, data, *hdfs_user)
+	h, err := common.NewHdfsPublisher(*hdfs_url, *hdfs_dir, *hdfs_file, *hdfs_user)
 	if err != nil {
-		fmt.Printf("error writing file on hdfs %v", err)
-		os.Exit(-1)
-	}
-
-	fmt.Printf("listing contents at %s...\n", *hdfs_dir)
-	err = common.ListDirs(*hdfs_url, *hdfs_dir, *hdfs_user)
-	if err != nil {
-		fmt.Printf("error listing directories on hdfs %v", err)
+		fmt.Printf("error creating client: %v", err)
 		os.Exit(-1)
 	}
 
 	fmt.Printf("Create consumer...\n")
 
-	err = common.ConsumeMessages(*brokerList, *topic, *bufferSize, *offset, *partitions)
+	err = common.ConsumeMessages(*brokerList, *topic, *bufferSize, *offset, *partitions, h)
 	if err != nil {
 		fmt.Printf("error consuming message, %v", err)
 		os.Exit(-1)

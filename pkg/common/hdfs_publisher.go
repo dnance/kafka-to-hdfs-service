@@ -5,6 +5,64 @@ import (
 	"github.com/colinmarc/hdfs"
 )
 
+type HdfsPublisher struct {
+	client *hdfs.Client
+	url    string
+	dir    string
+	file   string
+	user   string
+}
+
+func NewHdfsPublisher(hdfs_url, hdfs_dir, hdfs_file, hdfs_user string) (*HdfsPublisher, error) {
+
+	client, err := hdfs.NewForUser(hdfs_url, hdfs_user)
+	if err != nil {
+		fmt.Printf("Could not create client at %s\n", hdfs_url)
+		return nil, err
+	}
+
+	hp := &HdfsPublisher{
+		client: client,
+		url:    hdfs_url,
+		dir:    hdfs_dir,
+		file:   hdfs_file,
+		user:   hdfs_user,
+	}
+
+	return hp, nil
+}
+
+func (h *HdfsPublisher) WriteData(suf string, data []byte) error {
+
+	// check for existing directory
+	_, err := h.client.Stat(h.dir)
+	if err != nil {
+		// TODO figure out the correct permission value
+		err = h.client.Mkdir(h.dir, 0777)
+		if err != nil {
+			fmt.Printf("Can't create directory...%s\n", h.dir)
+			return err
+		}
+	}
+
+	abs_path_to_file := fmt.Sprintf("%s/%s.%s", h.dir, h.file, suf)
+	fw, err := h.client.Create(abs_path_to_file)
+	if err != nil {
+		fmt.Printf("Can't create file...%s\n", abs_path_to_file)
+		return err
+	}
+	defer fw.Close()
+
+	_, err = fw.Write(data)
+	if err != nil {
+		fmt.Printf("error writing data\n")
+		return err
+	}
+	fmt.Printf("successfully wrote data %s...", data)
+
+	return nil
+}
+
 func WriteData(hdfs_url, hdfs_dir, hdfs_file string, data []byte, hdfs_user string) error {
 
 	client, err := hdfs.NewForUser(hdfs_url, hdfs_user)

@@ -16,7 +16,7 @@ var (
 	logger = log.New(os.Stderr, "", log.LstdFlags)
 )
 
-func ConsumeMessages(brokerList string, topic string, bufferSize int, offset string, partitions string) error {
+func ConsumeMessages(brokerList string, topic string, bufferSize int, offset string, partitions string, publisher *HdfsPublisher) error {
 
 	fmt.Printf("topic: %s,\n brokers %s,\noffset %s,\npartitions %s\n", topic, brokerList, offset, partitions)
 
@@ -82,6 +82,14 @@ func ConsumeMessages(brokerList string, topic string, bufferSize int, offset str
 			fmt.Printf("Key:\t%s\n", string(msg.Key))
 			fmt.Printf("Value:\t%s\n", string(msg.Value))
 			fmt.Println()
+			fmt.Printf("publishing data...\n")
+			file_suf := fmt.Sprintf("%d", msg.Offset)
+			data := []byte(string(msg.Value))
+			err = publisher.WriteData(file_suf, data)
+			if err != nil {
+				fmt.Printf("error publishing\n")
+			}
+
 		}
 	}()
 
