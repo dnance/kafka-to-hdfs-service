@@ -11,7 +11,9 @@ import (
 
 var (
 	hdfs_url    = flag.String("hdfs-url", os.Getenv("HDFS_URL"), "The address to HDFS IP + PORT")
-	hdfs_dir    = flag.String("hdfs-dir", os.Getenv("HDFS_URL"), "The address to HDFS IP + PORT")
+	hdfs_dir    = flag.String("hdfs-dir", os.Getenv("HDFS_DIR"), "The address to HDFS IP + PORT")
+	hdfs_file   = flag.String("hdfs-file", os.Getenv("HDFS_FILE"), "The address to HDFS IP + PORT")
+	hdfs_user   = flag.String("hdfs-user", os.Getenv("HDFS_USER"), "The address to HDFS IP + PORT")
 	brokerList  = flag.String("brokers", os.Getenv("KAFKA_PEERS"), "The comma separated list of brokers in the Kafka cluster. You can also set the KAFKA_PEERS environment variable")
 	topic       = flag.String("topic", "", "REQUIRED: the topic to produce to")
 	key         = flag.String("key", "", "The key of the message to produce. Can be empty.")
@@ -29,10 +31,19 @@ var (
 )
 
 func main() {
+	data := []byte("testdata\n")
 
 	flag.Parse()
-	fmt.Printf("listing directories on HDFS...\n")
-	err := common.ListDirs(*hdfs_url, *hdfs_dir)
+	// TODO remove 	hdfs_file := fmt.Sprintf("%s/output.txt", *hdfs_dir)
+
+	err := common.WriteData(*hdfs_url, *hdfs_dir, *hdfs_file, data, *hdfs_user)
+	if err != nil {
+		fmt.Printf("error writing file on hdfs %v", err)
+		os.Exit(-1)
+	}
+
+	fmt.Printf("listing contents at %s...\n", *hdfs_dir)
+	err = common.ListDirs(*hdfs_url, *hdfs_dir, *hdfs_user)
 	if err != nil {
 		fmt.Printf("error listing directories on hdfs %v", err)
 		os.Exit(-1)
